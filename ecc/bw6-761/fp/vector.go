@@ -17,6 +17,8 @@ import (
 	"unsafe"
 )
 
+const MaxAllowedSize = 10485760 // 10 MiB
+
 // Vector represents a slice of Element.
 //
 // It implements the following interfaces:
@@ -81,6 +83,11 @@ func (vector *Vector) AsyncReadFrom(r io.Reader) (int64, error, chan error) {
 		return int64(read), err, chErr
 	}
 	sliceLen := binary.BigEndian.Uint32(buf[:4])
+
+	if sliceLen > MaxAllowedSize {
+		close(chErr)
+		return int64(4), fmt.Errorf("invalid length more than allowed, got: %v, limit: %v", sliceLen, MaxAllowedSize), chErr
+	}
 
 	n := int64(4)
 	(*vector) = make(Vector, sliceLen)
@@ -147,6 +154,10 @@ func (vector *Vector) ReadFrom(r io.Reader) (int64, error) {
 		return int64(read), err
 	}
 	sliceLen := binary.BigEndian.Uint32(buf[:4])
+
+	if sliceLen > MaxAllowedSize {
+		return int64(4), fmt.Errorf("invalid length more than allowed, got: %v, limit: %v", sliceLen, MaxAllowedSize)
+	}
 
 	n := int64(4)
 	(*vector) = make(Vector, sliceLen)

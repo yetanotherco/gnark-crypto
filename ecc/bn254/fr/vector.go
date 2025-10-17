@@ -84,6 +84,11 @@ func (vector *Vector) AsyncReadFrom(r io.Reader) (int64, error, chan error) {
 	}
 	sliceLen := binary.BigEndian.Uint32(buf[:4])
 
+	if sliceLen > MaxAllowedSize {
+		close(chErr)
+		return int64(4), fmt.Errorf("invalid length more than allowed, got: %v, limit: %v", sliceLen, MaxAllowedSize), chErr
+	}
+
 	n := int64(4)
 	(*vector) = make(Vector, sliceLen)
 	if sliceLen == 0 {
@@ -143,7 +148,7 @@ func (vector *Vector) ReadFrom(r io.Reader) (int64, error) {
 	sliceLen := binary.BigEndian.Uint32(buf[:4])
 
 	if sliceLen > MaxAllowedSize {
-		return 0, fmt.Errorf("invalid length more than allowed, got: %v, limit: %v", sliceLen, MaxAllowedSize)
+		return int64(4), fmt.Errorf("invalid length more than allowed, got: %v, limit: %v", sliceLen, MaxAllowedSize)
 	}
 
 	n := int64(4)
