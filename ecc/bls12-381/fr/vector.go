@@ -17,6 +17,8 @@ import (
 	"unsafe"
 )
 
+const MaxAllowedSize = 10485760 // 10 MiB
+
 // Vector represents a slice of Element.
 //
 // It implements the following interfaces:
@@ -139,6 +141,10 @@ func (vector *Vector) ReadFrom(r io.Reader) (int64, error) {
 		return int64(read), err
 	}
 	sliceLen := binary.BigEndian.Uint32(buf[:4])
+
+	if (sliceLen > MaxAllowedSize) {
+		return 0, fmt.Errorf("invalid length more than allowed, got: %v, limit: %v", sliceLen, MaxAllowedSize)
+	}
 
 	n := int64(4)
 	(*vector) = make(Vector, sliceLen)
