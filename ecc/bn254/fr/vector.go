@@ -142,7 +142,7 @@ func (vector *Vector) ReadFrom(r io.Reader) (int64, error) {
 	}
 	sliceLen := binary.BigEndian.Uint32(buf[:4])
 
-	if (sliceLen > MaxAllowedSize) {
+	if sliceLen > MaxAllowedSize {
 		return 0, fmt.Errorf("invalid length more than allowed, got: %v, limit: %v", sliceLen, MaxAllowedSize)
 	}
 
